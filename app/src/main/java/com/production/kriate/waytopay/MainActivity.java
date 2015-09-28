@@ -1,6 +1,7 @@
 package com.production.kriate.waytopay;
 
 import android.content.res.Configuration;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -19,6 +20,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.production.kriate.waytopay.fragments.AboutFragment;
+import com.production.kriate.waytopay.fragments.ClientFragment;
+import com.production.kriate.waytopay.fragments.InvoiceFragment;
 
 public class MainActivity extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
@@ -44,16 +47,14 @@ public class MainActivity extends FragmentActivity {
         mRelativeLayout = (RelativeLayout) findViewById(R.id.relative_layout);
 
         mTextViewClose = (TextView) findViewById(R.id.text_view_exit);
-        mTextViewClose.setOnClickListener( new View.OnClickListener() {
+        mTextViewClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
         });
 
-        // set up the drawer's list view with items and click listener
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-                R.layout.drawer_list_item, mScreenTitles));
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mScreenTitles));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -77,9 +78,38 @@ public class MainActivity extends FragmentActivity {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         if (savedInstanceState == null) {
-            selectItem(0, 0);
+            selectItem(0);
+        }
+    }
+
+    public void selectItem(int position) {
+        Fragment fragment = null;
+        switch (position) {
+            case 0:
+                fragment = InvoiceFragment.newInstance();
+                break;
+            case 1:
+                fragment = ClientFragment.newInstance();
+                break;
+            case 2:
+                fragment = AboutFragment.newInstance();
+                break;
+            default:
+                break;
         }
 
+        if (fragment != null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+
+            mDrawerList.setItemChecked(position, true);
+            if (position == 0) {
+                setTitle(getResources().getString(R.string.app_name));
+            } else{
+                setTitle(mScreenTitles[position]);
+            }
+            mDrawerLayout.closeDrawer(mRelativeLayout);
+        }
     }
 
     @Override
@@ -93,22 +123,19 @@ public class MainActivity extends FragmentActivity {
         // If the nav drawer is open, hide action items related to the content view
         boolean drawerOpen = mDrawerLayout.isDrawerOpen(mRelativeLayout);
         menu.findItem(R.id.menu_item_new_template).setVisible(!drawerOpen);
+        menu.findItem(R.id.menu_item_search).setVisible(!drawerOpen);
         return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return mDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     @Override
     public void setTitle(CharSequence title) {
         mTitle = title;
         getActionBar().setTitle(mTitle);
-
     }
 
     @Override
@@ -128,7 +155,7 @@ public class MainActivity extends FragmentActivity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 if (this.getLocalClassName().equals("MainActivity")) {
-                    selectItem(0, 0);
+                    selectItem(0);
                     return true;
                 }
 
@@ -147,38 +174,8 @@ public class MainActivity extends FragmentActivity {
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            selectItem(position, 0);
+            selectItem(position);
         }
-    }
-    public void selectItem(int position, int indexPage) {
-        Fragment fragment = null;
-        switch (position) {
-            case 0:
-                fragment = AboutFragment.newInstance();
-                break;
-            case 1:
-                fragment = AboutFragment.newInstance();
-                break;
-            case 2:
-//                fragment = SettingsFragment.newInstance();
-                break;
-            default:
-                break;
-        }
-
-        if (fragment != null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
-
-            mDrawerList.setItemChecked(position, true);
-            if (position == 0) {
-                setTitle(getResources().getString(R.string.app_name));
-            } else{
-                setTitle(mScreenTitles[position]);
-            }
-            mDrawerLayout.closeDrawer(mRelativeLayout);
-        }
-
     }
 
 }
